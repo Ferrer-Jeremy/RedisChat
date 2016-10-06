@@ -4,10 +4,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
 
-# Design patern singelton ??
-
 class BasicMessage(Gtk.Dialog):
-    """Show all the dialogs"""
+    """Basicinfo message"""
 
     def __init__(self, parent, typeDialog, title, text):
         """Create a dialog

@@ -5,8 +5,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from DialogMessage import BasicMessage, ConnectionServer, ConnectionChannel
 from RedisServer import RedisServer
-import _thread
-import redis
+from ThreadMessage import myThread
 
 
 class MyWindow(Gtk.Window):
@@ -20,6 +19,7 @@ class MyWindow(Gtk.Window):
         self.ipServer = ""
         self.port = ""
         self.username = ""
+        self.dictTextview = {}
 
         # Create an instance of redisServer
         self.redisServer = RedisServer()
@@ -33,7 +33,7 @@ class MyWindow(Gtk.Window):
 
         self.add(self.layoutGrid)  # Add the base layout
 
-    def header(self):  # Check if my use of Gtk.HeaderBar() id legit
+    def header(self):  # Check if my use of Gtk.HeaderBar() is legit
         """The header, toolbar"""
         self.layoutHeaderBar = Gtk.HeaderBar()
 
@@ -51,6 +51,7 @@ class MyWindow(Gtk.Window):
         # The events
         btnConnectionServer.connect("clicked", self.connectToServer)
         btnAddChannel.connect("clicked", self.addAChannel)
+        btnDeconnection.connect("clicked", self.deconnection)
 
         # Add
         self.layoutHeaderBar.add(btnConnectionServer)
@@ -72,9 +73,12 @@ class MyWindow(Gtk.Window):
         # Textview
         textview = Gtk.TextView()
         textview.set_editable(False)
+        textview.set_cursor_visible(False)
+        #textview.set_wrap_mode()
 
         # Add
         page.add(textview)
+        self.dictTextview['Default'] = textview
         self.notebook.append_page(page, Gtk.Label('Default'))
         self.layoutGrid.attach(self.notebook, 0, 1, 4, 1)
 
@@ -85,24 +89,46 @@ class MyWindow(Gtk.Window):
         btnSubmitText = Gtk.Button("Submit")
         btnSubmitText.set_focus_on_click(False)  # With this the focus stay on the input
         # The input
-        entrySubmit = Gtk.Entry()
-        entrySubmit.set_placeholder_text("Type your message here")
+        self.entrySubmit = Gtk.Entry()
+        self.entrySubmit.set_placeholder_text("Type your message here")
 
         # The events
-        btnSubmitText.connect("clicked", self.sendMessage, entrySubmit.get_text())
+        btnSubmitText.connect("clicked", self.sendMessage)
 
         # Add
-        self.layoutGrid.attach(entrySubmit, 0, 2, 2, 1)
+        self.layoutGrid.attach(self.entrySubmit, 0, 2, 2, 1)
         self.layoutGrid.attach(btnSubmitText, 2, 2, 2, 1)
 
-    # The differents events of the buttons
-    def sendMessage(self, widget, text):
-        """Send a message to the channel select"""
+    def updateTextview(self, channel, username, text):
+        """Update the text when we send a message or receive one"""
 
-        BasicMessage(self, Gtk.MessageType.INFO, "Titre", "tu as cliqué")
+        textFormat = username + " : " + text + "\n"
+        textview = self.dictTextview[channel]
+        # We get the textbuffer
+        textbuffer = textview.get_buffer()
+        # Position the iterator at the end of the buffer
+        bufferIterator = textbuffer.get_end_iter()
+        # Insert text at the position of the iterator
+        textbuffer.insert(bufferIterator, textFormat, len(textFormat))
+
+    # The differents events of the buttons
+    def sendMessage(self, widget):
+        """Send a message to the channel selected"""
+
+        #we get the name of the tab
+        nbPage = self.notebook.get_current_page()
+        tab = self.notebook.get_nth_page(nbPage)
+        channel = self.notebook.get_tab_label_text(tab)
+        # We get the text to send
+        text = self.entrySubmit.get_text()
+        # If we're connected and there is something to send'
+        if not text == "" and self.redisServer.isConnected:
+            # We send a msg and reset the field
+            self.redisServer.sendAMessage(channel, text)
+            self.entrySubmit.set_text("")
 
     def connectToServer(self, widget):
-        """Show a dialog where the user add info of the server"""
+        """Show a dialog where the user add details of the server"""
 
         dialogConnection = ConnectionServer(self, self.ipServer, self.port, self.username)
         response = dialogConnection.run()
@@ -118,45 +144,46 @@ class MyWindow(Gtk.Window):
             if not self.ipServer == "" and not self.port == ""and not self.username == "":
                 # If the entries are full
                 # Try to Connect to the server
-                self.redisServer.connect(self.ipServer, self.port)
-                # TODO test if error connect
-                ####
-                self.layoutHeaderBar.props.title = "Connected to : " + self.ipServer + ":" + self.port + " as " + self.username
-                #Create a new thread
-                try:
-                    _thread.start_new_thread(self.redisServer.getMessage, ())
-                except:
-                    print("Error: unable to start thread")
+                isConnect = self.redisServer.connect(self.ipServer, self.port, self.username)
+                # If error connect
+                if isConnect:
+                    self.layoutHeaderBar.props.title = "Connected to : " + self.ipServer + ":" + self.port + " as " + self.username
+                    #Create a new thread
+                    self.startThread()
+                else:
+                    BasicMessage(self, Gtk.MessageType.ERROR, "Error", "Connection impossible. Verify your connection details")
             else:
                 # If the entries aren't full
                 #show a error message
-                BasicMessage(self, Gtk.MessageType.INFO, "Error", "You must fill the inputs")
+                BasicMessage(self, Gtk.MessageType.ERROR, "Error", "You must fill the details")
 
-        #else nothing
+        #at the end we destroy the dialogelse the user press cancel ot the red cross
         dialogConnection.destroy()
 
     def addAChannel(self, widget):
         """Show a dialog where the user can add a channel"""
 
-        dialogChannel = ConnectionChannel(self)
-        response = dialogChannel.run()
-        channel = dialogChannel.entryChannel.get_text()
+        #If we're connected
+        if self.redisServer.isConnected:
+            # lunch the dialog
+            dialogChannel = ConnectionChannel(self)
+            response = dialogChannel.run()
+            channel = dialogChannel.entryChannel.get_text()
 
-        if response == Gtk.ResponseType.OK:
-            if not channel == "":
-                if self.redisServer.isConnected:
+            #if ok was pressed
+            if response == Gtk.ResponseType.OK:
+                # if the field wasn't empty
+                if not channel == "":
                     # Add the channel
-                    #self.redisServer.connectToChannel(channel)
+                    self.redisServer.connectToChannel(channel)
                     self.addATab(channel)
                 else:
-                    BasicMessage(self, Gtk.MessageType.INFO, "Error", "Your are not Connected")
-
-            else:
-                # Show Error
-                BasicMessage(self, Gtk.MessageType.INFO, "Error", "You must enter the name of the channel")
-
-        #else nothing
-        dialogChannel.destroy()
+                    BasicMessage(self, Gtk.MessageType.INFO, "Error", "You must enter the name of the channel")
+                #else nclose the dialog
+                dialogChannel.destroy()
+        else:
+            #else show error
+            BasicMessage(self, Gtk.MessageType.ERROR, "Error", "Your are not Connected")
 
     def addATab(self, name):
         """Add a tab"""
@@ -169,23 +196,54 @@ class MyWindow(Gtk.Window):
         # Textview
         textview = Gtk.TextView()
         textview.set_editable(False)
+        textview.set_cursor_visible(False)
+        #textview.set_wrap_mode()
 
         # Add
         page.add(textview)
+        self.dictTextview[name] = textview
         self.notebook.append_page(page, Gtk.Label(name))
         self.notebook.show_all()
-        print(self.notebook.get_n_pages())  # to know the number of pages
+        print("A channel was added : " + name)
 
     def deconnection(self, widget):
         """Deconnect from the server and show a dialog"""
 
+        #if we're connected
+        if self.redisServer.isConnected:
+            # we deconnect, set the title to deconect and stop the thread
+            self.redisServer.deconnect()
+            self.layoutHeaderBar.props.title = "Deconnect"
+            self.stopThread()
+            BasicMessage(self, Gtk.MessageType.INFO, "Error", "You are now deconnected")
+        else:
+            BasicMessage(self, Gtk.MessageType.ERROR, "Error", "You are not connected")
 
     def removeChannel(self):
-        """Remove a tab"""
+        """Remove a tab and unsubscribe of this channel"""
+
+    def startThread(self):
+        """Lauch multi thread"""
+
+        self.thread1 = myThread(self)
+        self.thread1.start()
+
+    def stopThread(self):
+        """Stop the multi thread"""
+
+        #If the thread doesn't exist throw an error
+        try:
+            self.thread1.loop = False
+        except Exception as ex:
+            print("Try to stop a thread that doesn't exist ?? NICE !!!!'" + ex)
+
+    def stopMain(self, widget, event, data=None):
+        """Replace the parent method to close the thread befor closing"""
+        self.stopThread()
+        Gtk.main_quit()
 
 
 win = MyWindow()
-win.connect("delete-event", Gtk.main_quit)
+win.connect("delete-event", win.stopMain)
 win.show_all()
 Gtk.main()
-help(redis)
