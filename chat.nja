@@ -1,10 +1,10 @@
 {
-  "mainFile": "mainWindow.py", 
+  "mainFile": "src/MainWindow.py", 
   "use-tabs": false, 
   "venv": "", 
   "relatedProjects": [], 
   "name": "Chat", 
-  "license": "GNU General Public License v2", 
+  "license": "", 
   "url": "", 
   "pythonPath": "python3", 
   "preExecScript": "", 
@@ -13,15 +13,7 @@
   "indentation": 4, 
   "PYTHONPATH": "", 
   "supported-extensions": [
-    ".py", 
-    ".html", 
-    ".jpg", 
-    ".png", 
-    ".ui", 
-    ".css", 
-    ".json", 
-    ".js", 
-    ".ini"
+    ".py"
   ], 
   "project-type": "", 
   "postExecScript": "", 

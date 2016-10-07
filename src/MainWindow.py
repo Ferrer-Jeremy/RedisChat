@@ -121,9 +121,9 @@ class MyWindow(Gtk.Window):
         tab = self.notebook.get_nth_page(nbPage)
         channel = self.notebook.get_tab_label_text(tab)
         # We get the text to send
-        text = self.entrySubmit.get_text()
+        text = self.username + "§" + self.entrySubmit.get_text()
         # If we're connected and there is something to send'
-        if not text == "" and self.redisServer.isConnected:
+        if not text == "" and self.redisServer.isConnected and text is not None:
             # We send a msg and reset the field
             self.redisServer.sendAMessage(channel, text)
             self.entrySubmit.set_text("")

@@ -19,8 +19,10 @@ class myThread (threading.Thread):
             if not data is None:
                 channel = data['channel'].decode("utf-8")
                 try:  # if you subscribe to a channel data return an int
-                    message = data['data'].decode("utf-8")
-                    self.mainWindow.updateTextview(channel, "username", message)
+                    messageRaw = data['data'].decode("utf-8").split("§")
+                    username = messageRaw[0]
+                    message = messageRaw[1]
+                    self.mainWindow.updateTextview(channel, username, message)
                 except Exception as ex:  # throw an exception if data[channel] isn't a binary string'
                     print(ex)
         print ("Exiting Thread for scan messages")

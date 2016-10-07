@@ -42,7 +42,7 @@ class ConnectionServer(Gtk.Dialog):
         # The entry
         self.entryIp = Gtk.Entry()
         self.entryIp.set_text(ip)
-        self.entryIp.set_placeholder_text("123.255.123.123")
+        self.entryIp.set_placeholder_text("13.255.45.123")
         self.entryIp.set_max_length(15)
         self.entryPort = Gtk.Entry()
         self.entryPort.set_text(port)
