@@ -1,8 +1,8 @@
-# ChatRedis
+# RedisChat
 
 ChatRedis enable you to chat on a redis server
 
-![Screenshot](chatRedis.png)
+![Screenshot](RedisChat.png)
 
 ### Get It Working
 1. Go in src
