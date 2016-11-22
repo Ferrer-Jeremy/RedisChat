@@ -16,7 +16,8 @@ class BasicMessage(Gtk.Dialog):
         -Gtk.MessageType.WARNING
         -Gtk.MessageType.QUESTION"""
 
-        dialog = Gtk.MessageDialog(parent, 0, typeDialog, Gtk.ButtonsType.OK, title)
+        dialog = Gtk.MessageDialog(
+            parent, 0, typeDialog, Gtk.ButtonsType.OK, title)
         dialog.format_secondary_text(text)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
@@ -31,7 +32,15 @@ class ConnectionServer(Gtk.Dialog):
     """Window for connecting to the server"""
 
     def __init__(self, parent, ip, port, username):
-        Gtk.Dialog.__init__(self, "Connect to Server", parent, 0, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        Gtk.Dialog.__init__(
+            self,
+            "Connect to Server",
+            parent,
+            0,
+            (Gtk.STOCK_CANCEL,
+             Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OK,
+             Gtk.ResponseType.OK))
 
         # The label
         lblInstruction = Gtk.Label("Enter the adress of the server")
@@ -74,7 +83,15 @@ class ConnectionChannel(Gtk.Dialog):
     """Window for connecting to a channel"""
 
     def __init__(self, parent):
-        Gtk.Dialog.__init__(self, "Connect to a Channel", parent, 0, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        Gtk.Dialog.__init__(
+            self,
+            "Connect to a Channel",
+            parent,
+            0,
+            (Gtk.STOCK_CANCEL,
+             Gtk.ResponseType.CANCEL,
+             Gtk.STOCK_OK,
+             Gtk.ResponseType.OK))
 
         # The label
         lblChannel = Gtk.Label("Channel Name :")

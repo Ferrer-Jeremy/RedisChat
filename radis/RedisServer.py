@@ -2,9 +2,10 @@
 import redis
 
 
-class RedisServer():
+class RedisServer:
     """Connect, deconnect subscribe, unsucribe, send message , get messages"""
-    #We need to create 2 instances of StrictRedis because we cannot subscribe to a channel and send a message to a channel at the same time
+    # We need to create 2 instances of StrictRedis because we cannot subscribe
+    # to a channel and send a message to a channel at the same time
 
     def __init__(self):
         self.ipServer = ""
@@ -24,9 +25,12 @@ class RedisServer():
             print(ex)
             return False
 
-        # send a request to the server for testing if the details are right (redis doesn't connect you until you send a request)
+        # send a request to the server for testing if the details are right
+        # (redis doesn't connect you until you send a request)
         try:
-            self.redisSender.get(None)  # getting None returns None or throws an exception if you are not connected
+            # getting None returns None or throws an exception if you are not
+            # connected
+            self.redisSender.get(None)
         except (redis.exceptions.ConnectionError, redis.exceptions.BusyLoadingError) as ex:
             print(ex)
             self.isConnected = False
@@ -41,7 +45,8 @@ class RedisServer():
     def deconnect(self):
         """Deconnect from the server"""
 
-        print("Try to deconnect : " + str(self.redisSender.execute_command("QUIT")))
+        print("Try to deconnect : " +
+              str(self.redisSender.execute_command("QUIT")))
         self.redisSender = None
         self.isConnected = False
 

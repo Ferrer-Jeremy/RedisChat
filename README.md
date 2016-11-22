@@ -1,6 +1,6 @@
 # RedisChat
 
-RedisChat enable you to chat on a redis server
+RedisChat enable you to **chat** / **monitor** with multiples rooms on a redis server with a graphical user interface or not
 
 ![Screenshot](RedisChat.png)
 
@@ -34,12 +34,14 @@ ou
 * GTK3
 
 ### TODO
+* Allow the user to choose 2 mods chat or monitoring
 * Catch connection lost
 * Check if we have already subscribe to a channel we try to add
-* Deconection close the tab ?
+* Disconnection close the tab ?
 * Put color on the username
 * Press enter to validate dialog window
 * Save the connection details
 * Change wrapline following the size of the window
-* Speed up the thread
+* Speed up the thread and allow to choose
 * Accents in username, channel name and host crash the programme
+* Allow the program to be run in command line and monitor multiples channels

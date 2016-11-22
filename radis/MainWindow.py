@@ -1,11 +1,13 @@
 #!/usr/bin/python3.5
 # -*- coding: utf-8 -*-
 import gi
+
+from radis.DialogMessage import ConnectionServer, BasicMessage, ConnectionChannel
+from radis.RedisServer import RedisServer
+from radis.ThreadMessage import MyThread
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
-from DialogMessage import BasicMessage, ConnectionServer, ConnectionChannel
-from RedisServer import RedisServer
-from ThreadMessage import myThread
 
 
 class MyWindow(Gtk.Window):
@@ -29,7 +31,7 @@ class MyWindow(Gtk.Window):
 
         self.header()  # Add header
         self.tabs()  # Add the channels tab
-        self.Submit()  # Add the submit box
+        self.submit()  # Add the submit box
 
         self.add(self.layoutGrid)  # Add the base layout
 
@@ -38,9 +40,11 @@ class MyWindow(Gtk.Window):
         self.layoutHeaderBar = Gtk.HeaderBar()
 
         # The buttons with icons
-        btnConnectionServer = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_CONNECT))
+        btnConnectionServer = Gtk.Button(
+            None, image=Gtk.Image(stock=Gtk.STOCK_CONNECT))
         btnAddChannel = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_ADD))
-        btnDeconnection = Gtk.Button(None, image=Gtk.Image(stock=Gtk.STOCK_STOP))
+        btnDeconnection = Gtk.Button(
+            None, image=Gtk.Image(stock=Gtk.STOCK_STOP))
 
         # The labels & tooltips
         self.layoutHeaderBar.props.title = "Deconnect"
@@ -74,7 +78,7 @@ class MyWindow(Gtk.Window):
         textview = Gtk.TextView()
         textview.set_editable(False)
         textview.set_cursor_visible(False)
-        #textview.set_wrap_mode()
+        # textview.set_wrap_mode()
 
         # Add
         page.add(textview)
@@ -82,12 +86,13 @@ class MyWindow(Gtk.Window):
         self.notebook.append_page(page, Gtk.Label('Default'))
         self.layoutGrid.attach(self.notebook, 0, 1, 4, 1)
 
-    def Submit(self):
+    def submit(self):
         """The submit box"""
 
         # The button
         btnSubmitText = Gtk.Button("Submit")
-        btnSubmitText.set_focus_on_click(False)  # With this the focus stay on the input
+        # With this the focus stay on the input
+        btnSubmitText.set_focus_on_click(False)
         # The input
         self.entrySubmit = Gtk.Entry()
         self.entrySubmit.set_placeholder_text("Type your message here")
@@ -114,9 +119,9 @@ class MyWindow(Gtk.Window):
 
     # The differents events of the buttons
     def sendMessage(self, widget):
-        """Send a message to the channel selected"""
+        """Send a message to the active tab"""
 
-        #we get the name of the tab
+        # we get the name of the tab
         nbPage = self.notebook.get_current_page()
         tab = self.notebook.get_nth_page(nbPage)
         channel = self.notebook.get_tab_label_text(tab)
@@ -131,7 +136,8 @@ class MyWindow(Gtk.Window):
     def connectToServer(self, widget):
         """Show a dialog where the user add details of the server"""
 
-        dialogConnection = ConnectionServer(self, self.ipServer, self.port, self.username)
+        dialogConnection = ConnectionServer(
+            self, self.ipServer, self.port, self.username)
         response = dialogConnection.run()
 
         if response == Gtk.ResponseType.OK:
@@ -145,33 +151,38 @@ class MyWindow(Gtk.Window):
             if not self.ipServer == "" and not self.port == ""and not self.username == "":
                 # If the entries are full
                 # Try to Connect to the server
-                isConnect = self.redisServer.connect(self.ipServer, self.port, self.username)
+                isConnect = self.redisServer.connect(
+                    self.ipServer, self.port, self.username)
                 # If error connect
                 if isConnect:
-                    self.layoutHeaderBar.props.title = "Connected to : " + self.ipServer + ":" + self.port + " as " + self.username
-                    #Create a new thread
+                    self.layoutHeaderBar.props.title = "Connected to : " + \
+                        self.ipServer + ":" + self.port + " as " + self.username
+                    # Create a new thread
                     self.startThread()
                 else:
-                    BasicMessage(self, Gtk.MessageType.ERROR, "Error", "Connection impossible. Verify your connection details")
+                    BasicMessage(self, Gtk.MessageType.ERROR, "Error",
+                                 "Connection impossible. Verify your connection details")
             else:
                 # If the entries aren't full
-                #show a error message
-                BasicMessage(self, Gtk.MessageType.ERROR, "Error", "You must fill the details")
+                # show a error message
+                BasicMessage(self, Gtk.MessageType.ERROR,
+                             "Error", "You must fill the details")
 
-        #at the end we destroy the dialogelse the user press cancel ot the red cross
+        # at the end we destroy the dialogelse the user press cancel ot the red
+        # cross
         dialogConnection.destroy()
 
     def addAChannel(self, widget):
         """Show a dialog where the user can add a channel"""
 
-        #If we're connected
+        # If we're connected
         if self.redisServer.isConnected:
             # lunch the dialog
             dialogChannel = ConnectionChannel(self)
             response = dialogChannel.run()
             channel = dialogChannel.entryChannel.get_text()
 
-            #if ok was pressed
+            # if ok was pressed
             if response == Gtk.ResponseType.OK:
                 # if the field wasn't empty
                 if not channel == "":
@@ -179,12 +190,14 @@ class MyWindow(Gtk.Window):
                     self.redisServer.connectToChannel(channel)
                     self.addATab(channel)
                 else:
-                    BasicMessage(self, Gtk.MessageType.INFO, "Error", "You must enter the name of the channel")
-                #else nclose the dialog
+                    BasicMessage(self, Gtk.MessageType.INFO, "Error",
+                                 "You must enter the name of the channel")
+                # else nclose the dialog
                 dialogChannel.destroy()
         else:
-            #else show error
-            BasicMessage(self, Gtk.MessageType.ERROR, "Error", "Your are not Connected")
+            # else show error
+            BasicMessage(self, Gtk.MessageType.ERROR,
+                         "Error", "Your are not Connected")
 
     def addATab(self, name):
         """Add a tab"""
@@ -198,7 +211,7 @@ class MyWindow(Gtk.Window):
         textview = Gtk.TextView()
         textview.set_editable(False)
         textview.set_cursor_visible(False)
-        #textview.set_wrap_mode()
+        # textview.set_wrap_mode()
 
         # Add
         page.add(textview)
@@ -210,15 +223,17 @@ class MyWindow(Gtk.Window):
     def deconnection(self, widget):
         """Deconnect from the server and show a dialog"""
 
-        #if we're connected
+        # if we're connected
         if self.redisServer.isConnected:
             # we deconnect, set the title to deconect and stop the thread
             self.redisServer.deconnect()
             self.layoutHeaderBar.props.title = "Deconnect"
             self.stopThread()
-            BasicMessage(self, Gtk.MessageType.INFO, "Error", "You are now deconnected")
+            BasicMessage(self, Gtk.MessageType.INFO,
+                         "Error", "You are now deconnected")
         else:
-            BasicMessage(self, Gtk.MessageType.ERROR, "Error", "You are not connected")
+            BasicMessage(self, Gtk.MessageType.ERROR,
+                         "Error", "You are not connected")
 
     def removeChannel(self):
         """Remove a tab and unsubscribe of this channel"""
@@ -226,13 +241,13 @@ class MyWindow(Gtk.Window):
     def startThread(self):
         """Lauch multi thread"""
 
-        self.thread1 = myThread(self)
+        self.thread1 = MyThread(self)
         self.thread1.start()
 
     def stopThread(self):
         """Stop the multi thread"""
 
-        #If the thread doesn't exist throw an error
+        # If the thread doesn't exist throw an error
         try:
             self.thread1.loop = False
         except Exception as ex:
